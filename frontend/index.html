@@ -14,7 +14,7 @@
         }
 
         body {
-            background: #0f0f1a;
+            background: #1a1a1a;
             color: #fff;
         }
 
@@ -38,14 +38,14 @@
 
         .swarm-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 2rem;
             margin-bottom: 2rem;
         }
 
-        .swarm-card {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
+        .swarm-node {
+            background: #2a2a2a;
+            border-radius: 10px;
             padding: 1.5rem;
             transition: transform 0.3s ease;
             cursor: pointer;
@@ -53,202 +53,197 @@
             overflow: hidden;
         }
 
-        .swarm-card:hover {
+        .swarm-node:hover {
             transform: translateY(-5px);
             box-shadow: 0 5px 15px rgba(76, 175, 80, 0.2);
         }
 
-        .swarm-card h3 {
-            color: #4CAF50;
-            margin-bottom: 1rem;
+        .node-status {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4CAF50;
+            animation: pulse 2s infinite;
         }
 
-        .stats {
-            display: flex;
-            justify-content: space-between;
+        .node-details {
             margin-top: 1rem;
         }
 
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 1.5rem;
+        .node-details h3 {
             color: #4CAF50;
+            margin-bottom: 0.5rem;
         }
 
-        .control-panel {
-            background: rgba(255, 255, 255, 0.05);
+        .stats-container {
+            background: #2a2a2a;
+            border-radius: 10px;
             padding: 2rem;
-            border-radius: 15px;
             margin-top: 2rem;
         }
 
-        .btn {
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 1rem;
+            background: #333;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: scale(1.05);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            color: #4CAF50;
+            margin-bottom: 0.5rem;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        button {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 5px;
             background: #4CAF50;
             color: white;
-            border: none;
-            padding: 0.8rem 1.5rem;
-            border-radius: 5px;
             cursor: pointer;
             transition: background 0.3s ease;
         }
 
-        .btn:hover {
+        button:hover {
             background: #45a049;
-        }
-
-        #swarm-canvas {
-            width: 100%;
-            height: 300px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            margin-bottom: 2rem;
-        }
-
-        .particle {
-            position: absolute;
-            background: #4CAF50;
-            border-radius: 50%;
-            pointer-events: none;
-            animation: float 3s infinite ease-in-out;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header class="header">
+        <div class="header">
             <h1>Swarm Coordination Platform</h1>
-            <p>Real-time swarm behavior visualization and control</p>
-        </header>
-
-        <canvas id="swarm-canvas"></canvas>
-
-        <div class="swarm-grid">
-            <div class="swarm-card">
-                <h3>Swarm Alpha</h3>
-                <p>Active coordination pattern: Flocking</p>
-                <div class="stats">
-                    <div class="stat-item">
-                        <div class="stat-value">24</div>
-                        <div class="stat-label">Agents</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">98%</div>
-                        <div class="stat-label">Efficiency</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="swarm-card">
-                <h3>Swarm Beta</h3>
-                <p>Active coordination pattern: Foraging</p>
-                <div class="stats">
-                    <div class="stat-item">
-                        <div class="stat-value">18</div>
-                        <div class="stat-label">Agents</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">92%</div>
-                        <div class="stat-label">Efficiency</div>
-                    </div>
-                </div>
-            </div>
+            <p>Real-time swarm monitoring and control interface</p>
         </div>
 
-        <div class="control-panel">
-            <h2>Swarm Control Panel</h2>
-            <button class="btn" onclick="toggleSimulation()">Start Simulation</button>
-            <button class="btn" onclick="resetSimulation()">Reset</button>
+        <div class="controls">
+            <button onclick="addNode()">Add Node</button>
+            <button onclick="optimizeSwarm()">Optimize Swarm</button>
+            <button onclick="pauseSwarm()">Pause Swarm</button>
+        </div>
+
+        <div class="swarm-grid" id="swarmGrid"></div>
+
+        <div class="stats-container">
+            <h2>Swarm Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="activeNodes">0</div>
+                    <div>Active Nodes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="efficiency">0%</div>
+                    <div>Efficiency</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="uptime">0h</div>
+                    <div>Uptime</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="tasks">0</div>
+                    <div>Tasks Completed</div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // Canvas setup
-        const canvas = document.getElementById('swarm-canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
+        let nodes = [];
+        let nodeCount = 0;
 
-        // Swarm simulation variables
-        let particles = [];
-        let isSimulating = false;
-
-        class Particle {
-            constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.size = 4;
-                this.speedX = Math.random() * 3 - 1.5;
-                this.speedY = Math.random() * 3 - 1.5;
-            }
-
-            update() {
-                this.x += this.speedX;
-                this.y += this.speedY;
-
-                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
-                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
-            }
-
-            draw() {
-                ctx.fillStyle = '#4CAF50';
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-            }
+        function addNode() {
+            nodeCount++;
+            const node = {
+                id: nodeCount,
+                status: 'active',
+                tasks: Math.floor(Math.random() * 100)
+            };
+            nodes.push(node);
+            updateDisplay();
+            updateStats();
         }
 
-        function init() {
-            particles = [];
-            for (let i = 0; i < 50; i++) {
-                particles.push(new Particle());
-            }
+        function createNodeElement(node) {
+            const div = document.createElement('div');
+            div.className = 'swarm-node';
+            div.innerHTML = `
+                <div class="node-status"></div>
+                <div class="node-details">
+                    <h3>Node ${node.id}</h3>
+                    <p>Status: ${node.status}</p>
+                    <p>Tasks: ${node.tasks}</p>
+                </div>
+            `;
+            return div;
         }
 
-        function animate() {
-            if (!isSimulating) return;
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(particle => {
-                particle.update();
-                particle.draw();
+        function updateDisplay() {
+            const grid = document.getElementById('swarmGrid');
+            grid.innerHTML = '';
+            nodes.forEach(node => {
+                grid.appendChild(createNodeElement(node));
             });
-
-            requestAnimationFrame(animate);
         }
 
-        function toggleSimulation() {
-            isSimulating = !isSimulating;
-            if (isSimulating) {
-                animate();
-            }
+        function updateStats() {
+            document.getElementById('activeNodes').textContent = nodes.length;
+            document.getElementById('efficiency').textContent = 
+                Math.floor(Math.random() * 30 + 70) + '%';
+            document.getElementById('uptime').textContent = 
+                Math.floor(Math.random() * 24) + 'h';
+            document.getElementById('tasks').textContent = 
+                nodes.reduce((acc, node) => acc + node.tasks, 0);
         }
 
-        function resetSimulation() {
-            isSimulating = false;
-            init();
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(particle => particle.draw());
+        function optimizeSwarm() {
+            nodes.forEach(node => {
+                node.tasks = Math.floor(Math.random() * 100);
+            });
+            updateDisplay();
+            updateStats();
         }
 
-        // Initialize
-        init();
-        particles.forEach(particle => particle.draw());
+        function pauseSwarm() {
+            nodes.forEach(node => {
+                node.status = node.status === 'active' ? 'paused' : 'active';
+            });
+            updateDisplay();
+        }
 
-        // Responsive canvas
-        window.addEventListener('resize', () => {
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-            init();
-            particles.forEach(particle => particle.draw());
-        });
+        // Initial nodes
+        for(let i = 0; i < 4; i++) {
+            addNode();
+        }
+
+        // Update stats periodically
+        setInterval(updateStats, 5000);
     </script>
 </body>
 </html>
