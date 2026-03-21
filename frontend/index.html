@@ -1,2010 +1,245 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SwarmGovernanceProtocol — Control Center</title>
-  <style>
-    /* ============================================================
-       RESET & BASE
-    ============================================================ */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg-deep:        #050a14;
-      --bg-panel:       #0b1526;
-      --bg-card:        #0f1e35;
-      --bg-card-hover:  #162847;
-      --accent-cyan:    #00e5ff;
-      --accent-green:   #00ff9d;
-      --accent-yellow:  #ffd600;
-      --accent-red:     #ff3d71;
-      --accent-purple:  #a855f7;
-      --text-primary:   #e2eaf5;
-      --text-secondary: #7a9bbf;
-      --text-muted:     #3d5a7a;
-      --border:         rgba(0,229,255,0.12);
-      --border-bright:  rgba(0,229,255,0.35);
-      --glow-cyan:      0 0 18px rgba(0,229,255,0.45);
-      --glow-green:     0 0 18px rgba(0,255,157,0.45);
-      --glow-red:       0 0 18px rgba(255,61,113,0.45);
-      --radius:         10px;
-      --transition:     0.25s cubic-bezier(0.4,0,0.2,1);
-      --font-mono:      'Courier New', Courier, monospace;
-    }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background: var(--bg-deep);
-      color: var(--text-primary);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* ============================================================
-       ANIMATED BACKGROUND GRID
-    ============================================================ */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
-      background-size: 40px 40px;
-      pointer-events: none;
-      z-index: 0;
-      animation: gridPulse 8s ease-in-out infinite alternate;
-    }
-
-    @keyframes gridPulse {
-      from { opacity: 0.5; }
-      to   { opacity: 1; }
-    }
-
-    /* ============================================================
-       SCROLLBAR
-    ============================================================ */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: var(--bg-deep); }
-    ::-webkit-scrollbar-thumb { background: var(--accent-cyan); border-radius: 3px; }
-
-    /* ============================================================
-       LAYOUT
-    ============================================================ */
-    .app-wrapper {
-      position: relative;
-      z-index: 1;
-      display: grid;
-      grid-template-rows: auto 1fr auto;
-      min-height: 100vh;
-    }
-
-    /* ============================================================
-       HEADER / NAV
-    ============================================================ */
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 28px;
-      height: 64px;
-      background: rgba(11,21,38,0.92);
-      border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(12px);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      text-decoration: none;
-    }
-
-    .logo-icon {
-      width: 36px;
-      height: 36px;
-      position: relative;
-    }
-
-    .logo-icon svg { width: 100%; height: 100%; }
-
-    .logo-text {
-      font-size: 1.05rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      color: var(--accent-cyan);
-      text-shadow: var(--glow-cyan);
-      text-transform: uppercase;
-    }
-
-    .logo-text span { color: var(--text-primary); }
-
-    .nav-links {
-      display: flex;
-      gap: 4px;
-      list-style: none;
-    }
-
-    .nav-links a {
-      display: block;
-      padding: 6px 14px;
-      color: var(--text-secondary);
-      text-decoration: none;
-      font-size: 0.82rem;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      border-radius: 6px;
-      transition: var(--transition);
-    }
-
-    .nav-links a:hover,
-    .nav-links a.active {
-      color: var(--accent-cyan);
-      background: rgba(0,229,255,0.08);
-    }
-
-    .topbar-right {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .status-badge {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--accent-green);
-    }
-
-    .pulse-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--accent-green);
-      box-shadow: var(--glow-green);
-      animation: pulseDot 1.8s ease-in-out infinite;
-    }
-
-    @keyframes pulseDot {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50%       { transform: scale(1.5); opacity: 0.6; }
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      padding: 8px 18px;
-      border: none;
-      border-radius: var(--radius);
-      font-size: 0.78rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: var(--transition);
-      outline: none;
-    }
-
-    .btn-primary {
-      background: var(--accent-cyan);
-      color: var(--bg-deep);
-    }
-
-    .btn-primary:hover {
-      background: #33eeff;
-      box-shadow: var(--glow-cyan);
-      transform: translateY(-1px);
-    }
-
-    .btn-ghost {
-      background: transparent;
-      border: 1px solid var(--border-bright);
-      color: var(--accent-cyan);
-    }
-
-    .btn-ghost:hover {
-      background: rgba(0,229,255,0.08);
-      box-shadow: var(--glow-cyan);
-      transform: translateY(-1px);
-    }
-
-    .btn-danger {
-      background: var(--accent-red);
-      color: #fff;
-    }
-
-    .btn-danger:hover {
-      background: #ff5a85;
-      box-shadow: var(--glow-red);
-      transform: translateY(-1px);
-    }
-
-    .btn-sm { padding: 5px 12px; font-size: 0.72rem; }
-
-    .btn:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-      transform: none !important;
-      box-shadow: none !important;
-    }
-
-    /* ============================================================
-       MAIN CONTENT
-    ============================================================ */
-    .main-content {
-      padding: 28px;
-      display: flex;
-      flex-direction: column;
-      gap: 28px;
-    }
-
-    /* ============================================================
-       SECTION HEADER
-    ============================================================ */
-    .section-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
-    }
-
-    .section-title {
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--text-secondary);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .section-title::before {
-      content: '';
-      display: block;
-      width: 3px;
-      height: 14px;
-      background: var(--accent-cyan);
-      border-radius: 2px;
-      box-shadow: var(--glow-cyan);
-    }
-
-    /* ============================================================
-       KPI STRIP
-    ============================================================ */
-    .kpi-strip {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 16px;
-    }
-
-    .kpi-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px 22px;
-      position: relative;
-      overflow: hidden;
-      transition: var(--transition);
-    }
-
-    .kpi-card::after {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: var(--kpi-accent, var(--accent-cyan));
-      box-shadow: 0 0 12px var(--kpi-accent, var(--accent-cyan));
-    }
-
-    .kpi-card:hover {
-      background: var(--bg-card-hover);
-      border-color: var(--border-bright);
-      transform: translateY(-2px);
-    }
-
-    .kpi-label {
-      font-size: 0.68rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 10px;
-    }
-
-    .kpi-value {
-      font-size: 2rem;
-      font-weight: 800;
-      color: var(--kpi-accent, var(--accent-cyan));
-      line-height: 1;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .kpi-sub {
-      font-size: 0.72rem;
-      color: var(--text-secondary);
-      margin-top: 6px;
-    }
-
-    .kpi-trend {
-      position: absolute;
-      top: 18px;
-      right: 18px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 20px;
-    }
-
-    .kpi-trend.up   { color: var(--accent-green); background: rgba(0,255,157,0.12); }
-    .kpi-trend.down { color: var(--accent-red);   background: rgba(255,61,113,0.12); }
-    .kpi-trend.flat { color: var(--accent-yellow); background: rgba(255,214,0,0.12); }
-
-    /* ============================================================
-       TWO-COLUMN GRID
-    ============================================================ */
-    .two-col {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-
-    @media (max-width: 1100px) { .two-col { grid-template-columns: 1fr; } }
-
-    .three-col {
-      display: grid;
-      grid-template-columns: 2fr 1fr 1fr;
-      gap: 20px;
-    }
-
-    @media (max-width: 1200px) { .three-col { grid-template-columns: 1fr; } }
-
-    /* ============================================================
-       PANEL
-    ============================================================ */
-    .panel {
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 22px;
-    }
-
-    /* ============================================================
-       AGENT TABLE
-    ============================================================ */
-    .table-wrap {
-      overflow-x: auto;
-      border-radius: 8px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.82rem;
-    }
-
-    thead th {
-      padding: 10px 14px;
-      text-align: left;
-      font-size: 0.67rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      border-bottom: 1px solid var(--border);
-      white-space: nowrap;
-    }
-
-    tbody tr {
-      border-bottom: 1px solid rgba(255,255,255,0.03);
-      transition: var(--transition);
-    }
-
-    tbody tr:hover { background: rgba(0,229,255,0.04); }
-
-    tbody td {
-      padding: 11px 14px;
-      color: var(--text-primary);
-      vertical-align: middle;
-    }
-
-    .agent-id {
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      color: var(--accent-cyan);
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 3px 9px;
-      border-radius: 20px;
-      font-size: 0.68rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-
-    .badge-active  { color: var(--accent-green);  background: rgba(0,255,157,0.12); }
-    .badge-idle    { color: var(--accent-yellow); background: rgba(255,214,0,0.12); }
-    .badge-offline { color: var(--accent-red);    background: rgba(255,61,113,0.12); }
-    .badge-sync    { color: var(--accent-purple); background: rgba(168,85,247,0.12); }
-    .badge-info    { color: var(--accent-cyan);   background: rgba(0,229,255,0.12); }
-
-    .mini-bar-wrap {
-      width: 90px;
-      height: 6px;
-      background: rgba(255,255,255,0.06);
-      border-radius: 3px;
-      overflow: hidden;
-    }
-
-    .mini-bar-fill {
-      height: 100%;
-      border-radius: 3px;
-      transition: width 0.6s ease;
-    }
-
-    /* ============================================================
-       GOVERNANCE PROPOSALS
-    ============================================================ */
-    .proposal-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .proposal-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px 18px;
-      transition: var(--transition);
-      cursor: pointer;
-    }
-
-    .proposal-card:hover {
-      border-color: var(--border-bright);
-      background: var(--bg-card-hover);
-    }
-
-    .proposal-card.selected {
-      border-color: var(--accent-cyan);
-      box-shadow: 0 0 0 1px var(--accent-cyan), var(--glow-cyan);
-    }
-
-    .proposal-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 10px;
-    }
-
-    .proposal-title {
-      font-size: 0.88rem;
-      font-weight: 600;
-      color: var(--text-primary);
-      line-height: 1.4;
-    }
-
-    .proposal-id {
-      font-family: var(--font-mono);
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      margin-top: 3px;
-    }
-
-    .vote-bar-wrap {
-      height: 8px;
-      background: rgba(255,255,255,0.06);
-      border-radius: 4px;
-      overflow: hidden;
-      display: flex;
-      margin: 10px 0 8px;
-    }
-
-    .vote-bar-yes  { background: var(--accent-green);  transition: width 0.8s ease; }
-    .vote-bar-no   { background: var(--accent-red);    transition: width 0.8s ease; }
-    .vote-bar-abs  { background: var(--text-muted);    transition: width 0.8s ease; }
-
-    .vote-stats {
-      display: flex;
-      gap: 16px;
-      font-size: 0.72rem;
-      color: var(--text-secondary);
-    }
-
-    .vote-stats span { display: flex; align-items: center; gap: 5px; }
-    .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
-
-    .proposal-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 12px;
-    }
-
-    .time-left {
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      font-family: var(--font-mono);
-    }
-
-    /* ============================================================
-       NETWORK TOPOLOGY CANVAS
-    ============================================================ */
-    .canvas-wrap {
-      position: relative;
-      border-radius: 8px;
-      overflow: hidden;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-    }
-
-    #networkCanvas {
-      display: block;
-      width: 100%;
-      height: 320px;
-    }
-
-    .canvas-legend {
-      position: absolute;
-      bottom: 12px;
-      left: 12px;
-      display: flex;
-      gap: 14px;
-      font-size: 0.68rem;
-      color: var(--text-secondary);
-    }
-
-    .canvas-legend span { display: flex; align-items: center; gap: 5px; }
-
-    /* ============================================================
-       LOG TERMINAL
-    ============================================================ */
-    .terminal {
-      background: #020b14;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 0;
-      overflow: hidden;
-    }
-
-    .terminal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 16px;
-      background: rgba(0,229,255,0.05);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .terminal-title {
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-secondary);
-    }
-
-    .terminal-dots { display: flex; gap: 6px; }
-    .terminal-dots span {
-      width: 10px; height: 10px; border-radius: 50%;
-    }
-    .td-red  { background: #ff5f57; }
-    .td-yel  { background: #febc2e; }
-    .td-grn  { background: #28c840; }
-
-    .terminal-body {
-      padding: 14px 16px;
-      height: 220px;
-      overflow-y: auto;
-      font-family: var(--font-mono);
-      font-size: 0.76rem;
-      line-height: 1.7;
-    }
-
-    .log-line { display: flex; gap: 10px; }
-    .log-ts   { color: var(--text-muted); min-width: 82px; }
-    .log-lvl  { min-width: 48px; font-weight: 700; }
-    .log-lvl.INFO  { color: var(--accent-cyan); }
-    .log-lvl.WARN  { color: var(--accent-yellow); }
-    .log-lvl.ERROR { color: var(--accent-red); }
-    .log-lvl.OK    { color: var(--accent-green); }
-    .log-msg { color: var(--text-primary); }
-
-    /* ============================================================
-       VOTE MODAL
-    ============================================================ */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(5,10,20,0.82);
-      backdrop-filter: blur(6px);
-      z-index: 200;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-    }
-
-    .modal-backdrop.open {
-      opacity: 1;
-      pointer-events: all;
-    }
-
-    .modal {
-      background: var(--bg-panel);
-      border: 1px solid var(--border-bright);
-      border-radius: 14px;
-      padding: 32px;
-      width: 480px;
-      max-width: 94vw;
-      box-shadow: 0 0 60px rgba(0,229,255,0.15);
-      transform: translateY(20px);
-      transition: transform 0.3s ease;
-    }
-
-    .modal-backdrop.open .modal { transform: translateY(0); }
-
-    .modal-title {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--text-primary);
-      margin-bottom: 6px;
-    }
-
-    .modal-sub {
-      font-size: 0.8rem;
-      color: var(--text-secondary);
-      margin-bottom: 24px;
-      line-height: 1.6;
-    }
-
-    .vote-options {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-
-    .vote-option {
-      border: 2px solid var(--border);
-      border-radius: 10px;
-      padding: 14px 10px;
-      text-align: center;
-      cursor: pointer;
-      transition: var(--transition);
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: var(--text-secondary);
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
-
-    .vote-option:hover { border-color: var(--border-bright); color: var(--text-primary); }
-
-    .vote-option.sel-yes {
-      border-color: var(--accent-green);
-      color: var(--accent-green);
-      background: rgba(0,255,157,0.08);
-      box-shadow: var(--glow-green);
-    }
-
-    .vote-option.sel-no {
-      border-color: var(--accent-red);
-      color: var(--accent-red);
-      background: rgba(255,61,113,0.08);
-      box-shadow: var(--glow-red);
-    }
-
-    .vote-option.sel-abs {
-      border-color: var(--text-muted);
-      color: var(--text-muted);
-      background: rgba(61,90,122,0.15);
-    }
-
-    .vote-icon { font-size: 1.6rem; margin-bottom: 6px; }
-
-    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
-
-    /* ============================================================
-       SUBMIT PROPOSAL FORM
-    ============================================================ */
-    .form-row { margin-bottom: 16px; }
-
-    label {
-      display: block;
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--text-secondary);
-      margin-bottom: 7px;
-    }
-
-    input[type=text],
-    input[type=number],
-    textarea,
-    select {
-      width: 100%;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 14px;
-      color: var(--text-primary);
-      font-size: 0.85rem;
-      font-family: inherit;
-      outline: none;
-      transition: var(--transition);
-    }
-
-    input[type=text]:focus,
-    input[type=number]:focus,
-    textarea:focus,
-    select:focus {
-      border-color: var(--accent-cyan);
-      box-shadow: 0 0 0 3px rgba(0,229,255,0.12);
-    }
-
-    textarea { resize: vertical; min-height: 90px; }
-
-    select option { background: var(--bg-card); }
-
-    /* ============================================================
-       PROGRESS RING
-    ============================================================ */
-    .ring-wrap {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .ring-label {
-      font-size: 0.68rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-muted);
-    }
-
-    /* ============================================================
-       MINI CHART (SVG sparkline)
-    ============================================================ */
-    .sparkline-wrap {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .sparkline-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .sparkline-label {
-      font-size: 0.72rem;
-      color: var(--text-secondary);
-      min-width: 70px;
-    }
-
-    .sparkline-svg { flex: 1; height: 30px; }
-
-    .sparkline-val {
-      font-size: 0.78rem;
-      font-weight: 700;
-      font-family: var(--font-mono);
-      min-width: 44px;
-      text-align: right;
-    }
-
-    /* ============================================================
-       FOOTER
-    ============================================================ */
-    .footer {
-      padding: 14px 28px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      background: rgba(11,21,38,0.7);
-    }
-
-    .footer-right { display: flex; gap: 18px; }
-    .footer a { color: var(--text-muted); text-decoration: none; transition: var(--transition); }
-    .footer a:hover { color: var(--accent-cyan); }
-
-    /* ============================================================
-       TOAST NOTIFICATIONS
-    ============================================================ */
-    #toast-container {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      z-index: 999;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .toast {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 13px 18px;
-      border-radius: 10px;
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
-      font-size: 0.82rem;
-      color: var(--text-primary);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-      animation: toastIn 0.35s ease forwards;
-      max-width: 340px;
-    }
-
-    .toast.success { border-color: var(--accent-green); }
-    .toast.error   { border-color: var(--accent-red); }
-    .toast.info    { border-color: var(--accent-cyan); }
-
-    .toast-icon { font-size: 1.1rem; }
-
-    @keyframes toastIn {
-      from { opacity: 0; transform: translateX(40px); }
-      to   { opacity: 1; transform: translateX(0); }
-    }
-
-    @keyframes toastOut {
-      from { opacity: 1; transform: translateX(0); }
-      to   { opacity: 0; transform: translateX(40px); }
-    }
-
-    /* ============================================================
-       RESPONSIVE
-    ============================================================ */
-    @media (max-width: 768px) {
-      .topbar { padding: 0 16px; }
-      .main-content { padding: 16px; }
-      .nav-links { display: none; }
-      .kpi-strip { grid-template-columns: repeat(2, 1fr); }
-    }
-
-    /* ============================================================
-       UTILITY
-    ============================================================ */
-    .mt-0  { margin-top: 0; }
-    .mb-12 { margin-bottom: 12px; }
-    .flex-center { display: flex; align-items: center; }
-    .gap-8  { gap: 8px; }
-    .gap-12 { gap: 12px; }
-    .text-mono { font-family: var(--font-mono); }
-    .text-muted { color: var(--text-muted); font-size: 0.78rem; }
-    .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swarm Coordination Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #4CAF50;
+            text-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+        }
+
+        .swarm-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .swarm-card {
+            background: #2d2d2d;
+            border-radius: 10px;
+            padding: 1.5rem;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .swarm-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.2);
+        }
+
+        .swarm-canvas {
+            width: 100%;
+            height: 400px;
+            background: #000;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            background: #4CAF50;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .stat-card {
+            background: #2d2d2d;
+            padding: 1rem;
+            border-radius: 5px;
+            min-width: 150px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            color: #4CAF50;
+            margin-bottom: 0.5rem;
+        }
+    </style>
 </head>
 <body>
-<div class="app-wrapper">
-
-  <!-- ============================================================
-       TOPBAR
-  ============================================================ -->
-  <header class="topbar">
-    <a href="#" class="logo">
-      <div class="logo-icon">
-        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="18" cy="18" r="17" stroke="#00e5ff" stroke-width="1.5" opacity="0.4"/>
-          <circle cx="18" cy="18" r="11" stroke="#00e5ff" stroke-width="1.5" opacity="0.6"/>
-          <circle cx="18" cy="18" r="4" fill="#00e5ff"/>
-          <line x1="18" y1="1" x2="18" y2="7" stroke="#00e5ff" stroke-width="1.5"/>
-          <line x1="18" y1="29" x2="18" y2="35" stroke="#00e5ff" stroke-width="1.5"/>
-          <line x1="1" y1="18" x2="7" y2="18" stroke="#00e5ff" stroke-width="1.5"/>
-          <line x1="29" y1="18" x2="35" y2="18" stroke="#00e5ff" stroke-width="1.5"/>
-          <line x1="5.4" y1="5.4" x2="9.6" y2="9.6" stroke="#00e5ff" stroke-width="1.2" opacity="0.6"/>
-          <line x1="26.4" y1="26.4" x2="30.6" y2="30.6" stroke="#00e5ff" stroke-width="1.2" opacity="0.6"/>
-          <line x1="30.6" y1="5.4" x2="26.4" y2="9.6" stroke="#00e5ff" stroke-width="1.2" opacity="0.6"/>
-          <line x1="9.6" y1="26.4" x2="5.4" y2="30.6" stroke="#00e5ff" stroke-width="1.2" opacity="0.6"/>
-        </svg>
-      </div>
-      <div class="logo-text">Swarm<span>Gov</span></div>
-    </a>
-
-    <nav>
-      <ul class="nav-links">
-        <li><a href="#overview" class="active">Overview</a></li>
-        <li><a href="#agents">Agents</a></li>
-        <li><a href="#governance">Governance</a></li>
-        <li><a href="#network">Network</a></li>
-        <li><a href="#logs">Logs</a></li>
-      </ul>
-    </nav>
-
-    <div class="topbar-right">
-      <div class="status-badge">
-        <div class="pulse-dot"></div>
-        Protocol Active
-      </div>
-      <button class="btn btn-ghost btn-sm" id="btnRefresh">&#8635; Refresh</button>
-      <button class="btn btn-primary btn-sm" id="btnNewProposal">+ Proposal</button>
-    </div>
-  </header>
-
-  <!-- ============================================================
-       MAIN
-  ============================================================ -->
-  <main class="main-content">
-
-    <!-- KPI Strip -->
-    <section id="overview">
-      <div class="section-header">
-        <div class="section-title">Protocol Overview</div>
-        <span class="text-muted" id="lastUpdated">Last updated: --</span>
-      </div>
-      <div class="kpi-strip" id="kpiStrip">
-        <div class="kpi-card" style="--kpi-accent: var(--accent-cyan)">
-          <div class="kpi-label">Total Agents</div>
-          <div class="kpi-value" id="kpiAgents">--</div>
-          <div class="kpi-sub">Registered in swarm</div>
-          <div class="kpi-trend up" id="kpiAgentsTrend">+2</div>
+    <div class="container">
+        <div class="header">
+            <h1>Swarm Coordination Platform</h1>
+            <p>Real-time swarm behavior visualization and control</p>
         </div>
-        <div class="kpi-card" style="--kpi-accent: var(--accent-green)">
-          <div class="kpi-label">Active Agents</div>
-          <div class="kpi-value" id="kpiActive">--</div>
-          <div class="kpi-sub">Online &amp; responding</div>
-          <div class="kpi-trend up" id="kpiActiveTrend">+1</div>
-        </div>
-        <div class="kpi-card" style="--kpi-accent: var(--accent-yellow)">
-          <div class="kpi-label">Open Proposals</div>
-          <div class="kpi-value" id="kpiProposals">--</div>
-          <div class="kpi-sub">Awaiting quorum</div>
-          <div class="kpi-trend flat" id="kpiProposalsTrend">=3</div>
-        </div>
-        <div class="kpi-card" style="--kpi-accent: var(--accent-purple)">
-          <div class="kpi-label">Consensus Rate</div>
-          <div class="kpi-value" id="kpiConsensus">--</div>
-          <div class="kpi-sub">Last 10 votes</div>
-          <div class="kpi-trend up" id="kpiConsensusTrend">+4%</div>
-        </div>
-        <div class="kpi-card" style="--kpi-accent: var(--accent-red)">
-          <div class="kpi-label">Conflicts</div>
-          <div class="kpi-value" id="kpiConflicts">--</div>
-          <div class="kpi-sub">Unresolved disputes</div>
-          <div class="kpi-trend down" id="kpiConflictsTrend">+1</div>
-        </div>
-        <div class="kpi-card" style="--kpi-accent: #f97316">
-          <div class="kpi-label">Network Latency</div>
-          <div class="kpi-value" id="kpiLatency">--</div>
-          <div class="kpi-sub">Avg peer round-trip</div>
-          <div class="kpi-trend flat" id="kpiLatencyTrend">=12</div>
-        </div>
-      </div>
-    </section>
 
-    <!-- Agents + Governance -->
-    <div class="three-col">
+        <canvas id="swarmCanvas" class="swarm-canvas"></canvas>
 
-      <!-- Agent Table -->
-      <div>
-        <section id="agents">
-          <div class="section-header">
-            <div class="section-title">Agent Registry</div>
-            <button class="btn btn-ghost btn-sm" id="btnAddAgent">+ Spawn Agent</button>
-          </div>
-          <div class="panel" style="padding: 0;">
-            <div class="table-wrap">
-              <table id="agentTable">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Trust</th>
-                    <th>Load</th>
-                    <th>Messages</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="agentTableBody">
-                  <!-- Populated by JS -->
-                </tbody>
-              </table>
+        <div class="controls">
+            <button class="btn" onclick="startSimulation()">Start Simulation</button>
+            <button class="btn" onclick="pauseSimulation()">Pause</button>
+            <button class="btn" onclick="resetSimulation()">Reset</button>
+            <button class="btn" onclick="addAgent()">Add Agent</button>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="agentCount">0</div>
+                <div class="stat-label">Active Agents</div>
             </div>
-          </div>
-        </section>
-      </div>
-
-      <!-- Governance Proposals -->
-      <div>
-        <section id="governance">
-          <div class="section-header">
-            <div class="section-title">Proposals</div>
-            <div class="badge badge-info" id="proposalCount">0 Open</div>
-          </div>
-          <div class="proposal-list" id="proposalList">
-            <!-- Populated by JS -->
-          </div>
-        </section>
-      </div>
-
-      <!-- Stats Panel -->
-      <div style="display:flex;flex-direction:column;gap:20px;">
-
-        <!-- Consensus Gauge -->
-        <div class="panel">
-          <div class="section-title mb-12">Consensus Health</div>
-          <div class="ring-wrap">
-            <svg width="120" height="120" viewBox="0 0 120 120">
-              <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="10"/>
-              <circle id="gaugeArc" cx="60" cy="60" r="50" fill="none"
-                stroke="var(--accent-green)" stroke-width="10"
-                stroke-linecap="round"
-                stroke-dasharray="314"
-                stroke-dashoffset="94"
-                transform="rotate(-90 60 60)"
-                style="transition: stroke-dashoffset 1s ease, stroke 0.5s ease;"/>
-              <text x="60" y="56" text-anchor="middle" fill="#e2eaf5" font-size="20" font-weight="800" font-family="Segoe UI, sans-serif" id="gaugeText">70%</text>
-              <text x="60" y="72" text-anchor="middle" fill="#7a9bbf" font-size="9" font-family="Segoe UI, sans-serif">CONSENSUS</text>
-            </svg>
-            <div class="ring-label">Quorum threshold: 60%</div>
-          </div>
-        </div>
-
-        <!-- Sparklines -->
-        <div class="panel">
-          <div class="section-title mb-12">Live Metrics</div>
-          <div class="sparkline-wrap" id="sparklines"></div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- Network Topology -->
-    <section id="network">
-      <div class="section-header">
-        <div class="section-title">Network Topology</div>
-        <div style="display:flex;gap:8px;">
-          <button class="btn btn-ghost btn-sm" id="btnResetLayout">Reset</button>
-          <button class="btn btn-ghost btn-sm" id="btnToggleLabels">Labels</button>
-        </div>
-      </div>
-      <div class="panel" style="padding:0;">
-        <div class="canvas-wrap">
-          <canvas id="networkCanvas"></canvas>
-          <div class="canvas-legend">
-            <span><span class="dot" style="background:var(--accent-green)"></span>Active</span>
-            <span><span class="dot" style="background:var(--accent-yellow)"></span>Idle</span>
-            <span><span class="dot" style="background:var(--accent-red)"></span>Offline</span>
-            <span><span class="dot" style="background:var(--accent-purple)"></span>Syncing</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Terminal Log -->
-    <section id="logs">
-      <div class="section-header">
-        <div class="section-title">Protocol Event Log</div>
-        <div style="display:flex;gap:8px;">
-          <button class="btn btn-ghost btn-sm" id="btnClearLog">Clear</button>
-          <button class="btn btn-ghost btn-sm" id="btnPauseLog" data-paused="false">Pause</button>
-        </div>
-      </div>
-      <div class="terminal">
-        <div class="terminal-header">
-          <div class="terminal-dots">
-            <span class="td-red"></span>
-            <span class="td-yel"></span>
-            <span class="td-grn"></span>
-          </div>
-          <div class="terminal-title">stdout — swarm_governance_protocol</div>
-          <span class="text-muted" id="logCount">0 events</span>
-        </div>
-        <div class="terminal-body" id="terminalBody"></div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- ============================================================
-       FOOTER
-  ============================================================ -->
-  <footer class="footer">
-    <span>SwarmGovernanceProtocol &copy; 2024 — Distributed Consensus Engine v1.0.0</span>
-    <div class="footer-right">
-      <a href="#">Docs</a>
-      <a href="#">API</a>
-      <a href="https://github.com" target="_blank">GitHub</a>
-    </div>
-  </footer>
-
-</div>
-
-<!-- ============================================================
-     VOTE MODAL
-============================================================ -->
-<div class="modal-backdrop" id="voteModal">
-  <div class="modal">
-    <div class="modal-title" id="voteModalTitle">Cast Vote</div>
-    <div class="modal-sub" id="voteModalSub">Select your vote for this proposal. All votes are final and recorded on-chain.</div>
-    <div class="vote-options">
-      <div class="vote-option" id="voteYes" onclick="selectVote('yes')">
-        <div class="vote-icon">✅</div>
-        YES
-      </div>
-      <div class="vote-option" id="voteNo" onclick="selectVote('no')">
-        <div class="vote-icon">❌</div>
-        NO
-      </div>
-      <div class="vote-option" id="voteAbs" onclick="selectVote('abstain')">
-        <div class="vote-icon">⬜</div>
-        ABSTAIN
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeVoteModal()">Cancel</button>
-      <button class="btn btn-primary" id="btnSubmitVote" onclick="submitVote()" disabled>Submit Vote</button>
-    </div>
-  </div>
-</div>
-
-<!-- ============================================================
-     NEW PROPOSAL MODAL
-============================================================ -->
-<div class="modal-backdrop" id="proposalModal">
-  <div class="modal">
-    <div class="modal-title">Submit New Proposal</div>
-    <div class="modal-sub">Create a governance proposal for the swarm to vote on.</div>
-    <div class="form-row">
-      <label>Proposal Title</label>
-      <input type="text" id="propTitle" placeholder="e.g. Increase quorum threshold to 70%" />
-    </div>
-    <div class="form-row">
-      <label>Category</label>
-      <select id="propCategory">
-        <option value="parameter">Parameter Change</option>
-        <option value="upgrade">Protocol Upgrade</option>
-        <option value="agent">Agent Management</option>
-        <option value="security">Security Policy</option>
-        <option value="other">Other</option>
-      </select>
-    </div>
-    <div class="form-row">
-      <label>Description</label>
-      <textarea id="propDesc" placeholder="Describe the rationale and expected impact..."></textarea>
-    </div>
-    <div class="form-row">
-      <label>Duration (hours)</label>
-      <input type="number" id="propDuration" value="48" min="1" max="720" />
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeProposalModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="submitProposal()">Submit Proposal</button>
-    </div>
-  </div>
-</div>
-
-<!-- Toast Container -->
-<div id="toast-container"></div>
-
-<script>
-// ================================================================
-// SWARM GOVERNANCE PROTOCOL — FRONTEND ENGINE
-// ================================================================
-
-'use strict';
-
-// ---- CONFIG ----------------------------------------------------
-const CONFIG = {
-  refreshInterval:   3000,   // ms
-  logInterval:       1800,   // ms
-  sparkInterval:     2200,   // ms
-  networkInterval:   4000,   // ms
-  maxLogLines:       120,
-  toastDuration:     4000,
-  apiBase:           '/api',  // stub — replace with real endpoint
-  quorumThreshold:   0.60,
-};
-
-// ---- STATE -----------------------------------------------------
-const STATE = {
-  agents:        [],
-  proposals:     [],
-  logLines:      [],
-  logPaused:     false,
-  logCount:      0,
-  showLabels:    true,
-  selectedVote:  null,
-  activeProposal:null,
-  sparkData:     {},
-  networkNodes:  [],
-  networkEdges:  [],
-  animFrame:     null,
-  intervals:     [],
-};
-
-// ---- AGENT DATA ------------------------------------------------
-const ROLES   = ['Validator','Observer','Coordinator','Executor','Auditor','Relay'];
-const STATUSES = ['active','active','active','idle','offline','sync'];
-const NAMES   = [
-  'AGT-A1F2','AGT-B3C9','AGT-D7E4','AGT-F0G1','AGT-H8I3',
-  'AGT-J2K5','AGT-L9M0','AGT-N4O7','AGT-P6Q2','AGT-R1S8',
-  'AGT-T3U5','AGT-V0W9'
-];
-
-function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-function rndF(min, max, dp=1) { return parseFloat((Math.random()*(max-min)+min).toFixed(dp)); }
-function pick(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
-
-function generateAgents() {
-  return NAMES.map((id, i) => ({
-    id,
-    role:     ROLES[i % ROLES.length],
-    status:   STATUSES[i % STATUSES.length],
-    trust:    rnd(55, 99),
-    load:     rnd(5, 95),
-    messages: rnd(100, 9999),
-    uptime:   rndF(90, 99.9),
-  }));
-}
-
-function generateProposals() {
-  return [
-    {
-      id: 'PROP-001',
-      title: 'Increase quorum threshold from 60% to 70%',
-      category: 'parameter',
-      status: 'open',
-      yes: 42, no: 18, abs: 8,
-      total: 68,
-      timeLeft: '14h 32m',
-      author: 'AGT-A1F2',
-    },
-    {
-      id: 'PROP-002',
-      title: 'Upgrade consensus algorithm to PBFT v3',
-      category: 'upgrade',
-      status: 'open',
-      yes: 55, no: 10, abs: 5,
-      total: 70,
-      timeLeft: '2d 7h',
-      author: 'AGT-B3C9',
-    },
-    {
-      id: 'PROP-003',
-      title: 'Blacklist AGT-L9M0 for repeated Byzantine behavior',
-      category: 'security',
-      status: 'open',
-      yes: 30, no: 35, abs: 5,
-      total: 70,
-      timeLeft: '6h 10m',
-      author: 'AGT-D7E4',
-    },
-    {
-      id: 'PROP-004',
-      title: 'Expand relay agent pool by 4 nodes',
-      category: 'agent',
-      status: 'passed',
-      yes: 60, no: 5, abs: 5,
-      total: 70,
-      timeLeft: 'Closed',
-      author: 'AGT-F0G1',
-    },
-  ];
-}
-
-// ---- INIT ------------------------------------------------------
-document.addEventListener('DOMContentLoaded', () => {
-  try {
-    STATE.agents    = generateAgents();
-    STATE.proposals = generateProposals();
-    initSparkData();
-    renderAll();
-    startIntervals();
-    initCanvas();
-    bindEvents();
-    log('INFO', 'SwarmGovernanceProtocol dashboard initialised');
-    log('OK',   'Connected to protocol network — 12 agents discovered');
-    log('INFO', 'Consensus engine: PBFT v2.4 — quorum: 60%');
-  } catch(e) {
-    console.error('Init error:', e);
-    showToast('error', 'Initialisation failed: ' + e.message);
-  }
-});
-
-// ---- RENDER ALL ------------------------------------------------
-function renderAll() {
-  renderKPIs();
-  renderAgentTable();
-  renderProposals();
-  updateGauge();
-  updateTimestamp();
-}
-
-// ---- KPIs ------------------------------------------------------
-function renderKPIs() {
-  try {
-    const active    = STATE.agents.filter(a => a.status === 'active').length;
-    const open      = STATE.proposals.filter(p => p.status === 'open').length;
-    const consensus = calcConsensus();
-    const conflicts = rnd(0, 3);
-    const latency   = rnd(8, 45) + 'ms';
-
-    setText('kpiAgents',    STATE.agents.length);
-    setText('kpiActive',    active);
-    setText('kpiProposals', open);
-    setText('kpiConsensus', consensus + '%');
-    setText('kpiConflicts', conflicts);
-    setText('kpiLatency',   latency);
-    setText('proposalCount', open + ' Open');
-  } catch(e) { console.warn('KPI render error:', e); }
-}
-
-function calcConsensus() {
-  const openProps = STATE.proposals.filter(p => p.status === 'open');
-  if (!openProps.length) return 70;
-  const avg = openProps.reduce((s,p) => s + (p.yes / p.total * 100), 0) / openProps.length;
-  return Math.round(avg);
-}
-
-// ---- AGENT TABLE -----------------------------------------------
-function renderAgentTable() {
-  try {
-    const tbody = document.getElementById('agentTableBody');
-    if (!tbody) return;
-    tbody.innerHTML = STATE.agents.map(a => {
-      const statusClass = { active:'badge-active', idle:'badge-idle', offline:'badge-offline', sync:'badge-sync' }[a.status] || 'badge-info';
-      const statusLabel = a.status.charAt(0).toUpperCase() + a.status.slice(1);
-      const trustColor  = a.trust >= 80 ? 'var(--accent-green)' : a.trust >= 60 ? 'var(--accent-yellow)' : 'var(--accent-red)';
-      const loadColor   = a.load  <= 60 ? 'var(--accent-green)' : a.load  <= 85 ? 'var(--accent-yellow)' : 'var(--accent-red)';
-      return `
-        <tr>
-          <td><span class="agent-id">${esc(a.id)}</span></td>
-          <td>${esc(a.role)}</td>
-          <td><span class="badge ${statusClass}">${statusLabel}</span></td>
-          <td>
-            <div class="mini-bar-wrap">
-              <div class="mini-bar-fill" style="width:${a.trust}%;background:${trustColor}"></div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgSpeed">0</div>
+                <div class="stat-label">Avg Speed (m/s)</div>
             </div>
-            <div style="font-size:0.68rem;color:var(--text-muted);margin-top:2px">${a.trust}%</div>
-          </td>
-          <td>
-            <div class="mini-bar-wrap">
-              <div class="mini-bar-fill" style="width:${a.load}%;background:${loadColor}"></div>
+            <div class="stat-card">
+                <div class="stat-value" id="coverage">0%</div>
+                <div class="stat-label">Area Coverage</div>
             </div>
-            <div style="font-size:0.68rem;color:var(--text-muted);margin-top:2px">${a.load}%</div>
-          </td>
-          <td style="font-family:var(--font-mono);font-size:0.78rem;color:var(--text-secondary)">${a.messages.toLocaleString()}</td>
-          <td>
-            <div style="display:flex;gap:6px;">
-              <button class="btn btn-ghost btn-sm" onclick="inspectAgent('${esc(a.id)}')">Inspect</button>
-              ${a.status !== 'offline'
-                ? `<button class="btn btn-danger btn-sm" onclick="terminateAgent('${esc(a.id)}')">Kill</button>`
-                : `<button class="btn btn-ghost btn-sm" onclick="restartAgent('${esc(a.id)}')">Restart</button>`
-              }
-            </div>
-          </td>
-        </tr>
-      `;
-    }).join('');
-  } catch(e) { console.warn('Agent table render error:', e); }
-}
-
-// ---- PROPOSALS -------------------------------------------------
-function renderProposals() {
-  try {
-    const list = document.getElementById('proposalList');
-    if (!list) return;
-    list.innerHTML = STATE.proposals.map(p => {
-      const total = p.yes + p.no + p.abs || 1;
-      const yPct  = (p.yes / total * 100).toFixed(1);
-      const nPct  = (p.no  / total * 100).toFixed(1);
-      const aPct  = (p.abs / total * 100).toFixed(1);
-      const statusBadge = p.status === 'open'
-        ? '<span class="badge badge-active">Open</span>'
-        : '<span class="badge badge-idle">Passed</span>';
-      const catColor = { parameter:'var(--accent-cyan)', upgrade:'var(--accent-purple)', security:'var(--accent-red)', agent:'var(--accent-green)', other:'var(--text-muted)' }[p.category] || 'var(--accent-cyan)';
-      return `
-        <div class="proposal-card" id="pcard-${esc(p.id)}" onclick="openVoteModal('${esc(p.id)}')">
-          <div class="proposal-header">
-            <div>
-              <div class="proposal-title">${esc(p.title)}</div>
-              <div class="proposal-id">${esc(p.id)} &bull; <span style="color:${catColor}">${esc(p.category)}</span></div>
-            </div>
-            ${statusBadge}
-          </div>
-          <div class="vote-bar-wrap">
-            <div class="vote-bar-yes" style="width:${yPct}%"></div>
-            <div class="vote-bar-no"  style="width:${nPct}%"></div>
-            <div class="vote-bar-abs" style="width:${aPct}%"></div>
-          </div>
-          <div class="vote-stats">
-            <span><span class="dot" style="background:var(--accent-green)"></span>${yPct}% Yes</span>
-            <span><span class="dot" style="background:var(--accent-red)"></span>${nPct}% No</span>
-            <span><span class="dot" style="background:var(--text-muted)"></span>${aPct}% Abs</span>
-          </div>
-          <div class="proposal-footer">
-            <div class="time-left">&#9201; ${esc(p.timeLeft)}</div>
-            <div style="font-size:0.7rem;color:var(--text-muted)">by ${esc(p.author)}</div>
-          </div>
         </div>
-      `;
-    }).join('');
-  } catch(e) { console.warn('Proposal render error:', e); }
-}
 
-// ---- GAUGE -----------------------------------------------------
-function updateGauge() {
-  try {
-    const consensus = calcConsensus();
-    const arc       = document.getElementById('gaugeArc');
-    const txt       = document.getElementById('gaugeText');
-    if (!arc || !txt) return;
-    const circumference = 2 * Math.PI * 50;  // r=50
-    const offset        = circumference * (1 - consensus / 100);
-    arc.style.strokeDashoffset = offset;
-    arc.style.stroke = consensus >= 70
-      ? 'var(--accent-green)'
-      : consensus >= 50
-        ? 'var(--accent-yellow)'
-        : 'var(--accent-red)';
-    txt.textContent = consensus + '%';
-  } catch(e) { console.warn('Gauge error:', e); }
-}
-
-// ---- SPARKLINES ------------------------------------------------
-function initSparkData() {
-  const metrics = ['Throughput','Latency','Trust Avg','Vote Rate'];
-  metrics.forEach(m => {
-    STATE.sparkData[m] = Array.from({length:20}, () => rnd(20,90));
-  });
-}
-
-function renderSparklines() {
-  try {
-    const wrap = document.getElementById('sparklines');
-    if (!wrap) return;
-    const metrics = Object.keys(STATE.sparkData);
-    const units   = { Throughput:'tx/s', Latency:'ms', 'Trust Avg':'%', 'Vote Rate':'v/h' };
-    const colors  = ['var(--accent-cyan)','var(--accent-yellow)','var(--accent-green)','var(--accent-purple)'];
-    wrap.innerHTML = metrics.map((m, mi) => {
-      const data  = STATE.sparkData[m];
-      const val   = data[data.length - 1];
-      const min   = Math.min(...data);
-      const max   = Math.max(...data);
-      const w     = 100;
-      const h     = 28;
-      const pts   = data.map((v, i) => {
-        const x = (i / (data.length - 1)) * w;
-        const y = h - ((v - min) / (max - min + 0.001)) * h;
-        return `${x},${y}`;
-      }).join(' ');
-      const color = colors[mi % colors.length];
-      return `
-        <div class="sparkline-row">
-          <div class="sparkline-label">${esc(m)}</div>
-          <svg class="sparkline-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
-            <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round"/>
-          </svg>
-          <div class="sparkline-val" style="color:${color}">${val}<span style="font-size:0.6rem;color:var(--text-muted)">${units[m]||''}</span></div>
+        <div class="swarm-grid">
+            <div class="swarm-card">
+                <h3>Swarm Parameters</h3>
+                <p>Configure behavior patterns and coordination rules</p>
+            </div>
+            <div class="swarm-card">
+                <h3>Mission Control</h3>
+                <p>Set objectives and monitor mission progress</p>
+            </div>
+            <div class="swarm-card">
+                <h3>Analytics</h3>
+                <p>View detailed performance metrics and patterns</p>
+            </div>
         </div>
-      `;
-    }).join('');
-  } catch(e) { console.warn('Sparkline error:', e); }
-}
+    </div>
 
-function tickSparkData() {
-  Object.keys(STATE.sparkData).forEach(m => {
-    const arr = STATE.sparkData[m];
-    const last = arr[arr.length - 1];
-    const next = Math.max(5, Math.min(99, last + rnd(-8, 8)));
-    arr.push(next);
-    if (arr.length > 30) arr.shift();
-  });
-  renderSparklines();
-}
+    <script>
+        const canvas = document.getElementById('swarmCanvas');
+        const ctx = canvas.getContext('2d');
+        let agents = [];
+        let isSimulating = false;
 
-// ---- NETWORK CANVAS --------------------------------------------
-let canvas, ctx, canvasW, canvasH;
-let showLabels = true;
+        class Agent {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.dx = (Math.random() - 0.5) * 4;
+                this.dy = (Math.random() - 0.5) * 4;
+                this.radius = 5;
+            }
 
-function initCanvas() {
-  try {
-    canvas = document.getElementById('networkCanvas');
-    if (!canvas) return;
-    ctx = canvas.getContext('2d');
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-    buildNetworkGraph();
-    animateCanvas();
-  } catch(e) { console.warn('Canvas init error:', e); }
-}
+            update() {
+                this.x += this.dx;
+                this.y += this.dy;
 
-function resizeCanvas() {
-  if (!canvas) return;
-  const rect = canvas.getBoundingClientRect();
-  canvas.width  = rect.width  * devicePixelRatio;
-  canvas.height = rect.height * devicePixelRatio;
-  canvasW = canvas.width;
-  canvasH = canvas.height;
-  if (ctx) ctx.scale(devicePixelRatio, devicePixelRatio);
-}
+                if (this.x < 0 || this.x > canvas.width) this.dx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.dy *= -1;
+            }
 
-function buildNetworkGraph() {
-  const logW = canvasW / devicePixelRatio;
-  const logH = canvasH / devicePixelRatio;
-  STATE.networkNodes = STATE.agents.map((a, i) => ({
-    id:     a.id,
-    status: a.status,
-    x:      rnd(60, logW - 60),
-    y:      rnd(40, logH - 40),
-    vx:     rndF(-0.3, 0.3),
-    vy:     rndF(-0.3, 0.3),
-    r:      a.status === 'active' ? 9 : 7,
-  }));
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = '#4CAF50';
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
 
-  STATE.networkEdges = [];
-  STATE.networkNodes.forEach((n, i) => {
-    const connections = rnd(1, 3);
-    for (let c = 0; c < connections; c++) {
-      const j = rnd(0, STATE.networkNodes.length - 1);
-      if (j !== i) STATE.networkEdges.push([i, j]);
-    }
-  });
-}
+        function resizeCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+        }
 
-const STATUS_COLORS = {
-  active:  '#00ff9d',
-  idle:    '#ffd600',
-  offline: '#ff3d71',
-  sync:    '#a855f7',
-};
+        function addAgent() {
+            agents.push(new Agent());
+            updateStats();
+        }
 
-function animateCanvas() {
-  if (!canvas || !ctx) return;
-  const logW = canvasW / devicePixelRatio;
-  const logH = canvasH / devicePixelRatio;
+        function startSimulation() {
+            isSimulating = true;
+            animate();
+        }
 
-  ctx.clearRect(0, 0, logW, logH);
+        function pauseSimulation() {
+            isSimulating = false;
+        }
 
-  // Edges
-  STATE.networkEdges.forEach(([i, j]) => {
-    const a = STATE.networkNodes[i];
-    const b = STATE.networkNodes[j];
-    if (!a || !b) return;
-    ctx.beginPath();
-    ctx.moveTo(a.x, a.y);
-    ctx.lineTo(b.x, b.y);
-    ctx.strokeStyle = 'rgba(0,229,255,0.12)';
-    ctx.lineWidth   = 1;
-    ctx.stroke();
-  });
+        function resetSimulation() {
+            agents = [];
+            updateStats();
+        }
 
-  // Nodes
-  STATE.networkNodes.forEach(n => {
-    const color = STATUS_COLORS[n.status] || '#00e5ff';
+        function updateStats() {
+            document.getElementById('agentCount').textContent = agents.length;
+            document.getElementById('avgSpeed').textContent = 
+                (agents.reduce((acc, agent) => acc + Math.sqrt(agent.dx * agent.dx + agent.dy * agent.dy), 0) / 
+                (agents.length || 1)).toFixed(1);
+            document.getElementById('coverage').textContent = 
+                Math.min(Math.floor(agents.length * 5), 100) + '%';
+        }
 
-    // Glow
-    ctx.beginPath();
-    ctx.arc(n.x, n.y, n.r + 4, 0, Math.PI * 2);
-    ctx.fillStyle = color.replace(')', ',0.15)').replace('rgb(', 'rgba(').replace('#', 'rgba(').replace('rgba(', 'rgba(');
-    // Simple glow via shadow
-    ctx.shadowColor = color;
-    ctx.shadowBlur  = 12;
-    ctx.fill();
-    ctx.shadowBlur  = 0;
+        function animate() {
+            if (!isSimulating) return;
 
-    // Core
-    ctx.beginPath();
-    ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-    ctx.fillStyle = color;
-    ctx.fill();
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Label
-    if (showLabels) {
-      ctx.fillStyle   = 'rgba(226,234,245,0.75)';
-      ctx.font        = `${9 * devicePixelRatio / devicePixelRatio}px Courier New`;
-      ctx.textAlign   = 'center';
-      ctx.fillText(n.id, n.x, n.y + n.r + 13);
-    }
+            agents.forEach(agent => {
+                agent.update();
+                agent.draw();
+            });
 
-    // Physics drift
-    n.x += n.vx;
-    n.y += n.vy;
-    if (n.x < 30 || n.x > logW - 30) n.vx *= -1;
-    if (n.y < 20 || n.y > logH - 20) n.vy *= -1;
-  });
+            updateStats();
+            requestAnimationFrame(animate);
+        }
 
-  STATE.animFrame = requestAnimationFrame(animateCanvas);
-}
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
 
-// ---- LOG TERMINAL ----------------------------------------------
-const LOG_MESSAGES = [
-  ['INFO',  'Heartbeat received from AGT-A1F2'],
-  ['INFO',  'Consensus round #4821 initiated'],
-  ['OK',    'Proposal PROP-002 reached quorum threshold'],
-  ['WARN',  'AGT-L9M0 response timeout (attempt 2/3)'],
-  ['INFO',  'Vote recorded: AGT-B3C9 → PROP-001 YES'],
-  ['INFO',  'Network topology updated — 12 peers'],
-  ['OK',    'Block #88234 committed to ledger'],
-  ['WARN',  'High load detected on AGT-H8I3 (93%)'],
-  ['INFO',  'Relay handshake: AGT-R1S8 ↔ AGT-T3U5'],
-  ['ERROR', 'AGT-L9M0 failed Byzantine fault check'],
-  ['INFO',  'Trust score recalculated for 12 agents'],
-  ['OK',    'Consensus achieved: 8/12 validators'],
-  ['INFO',  'Proposal PROP-003 voting window extended'],
-  ['WARN',  'Latency spike detected: 87ms avg'],
-  ['INFO',  'AGT-N4O7 syncing blockchain state...'],
-  ['OK',    'Sync complete: AGT-N4O7 rejoined swarm'],
-];
-
-function log(level, message) {
-  if (STATE.logPaused) return;
-  const ts   = new Date().toLocaleTimeString('en-US', { hour12: false });
-  const line = { ts, level, message };
-  STATE.logLines.push(line);
-  if (STATE.logLines.length > CONFIG.maxLogLines) STATE.logLines.shift();
-  STATE.logCount++;
-  renderLog();
-}
-
-function renderLog() {
-  try {
-    const body = document.getElementById('terminalBody');
-    if (!body) return;
-    body.innerHTML = STATE.logLines.map(l => `
-      <div class="log-line">
-        <span class="log-ts">${esc(l.ts)}</span>
-        <span class="log-lvl ${esc(l.level)}">${esc(l.level)}</span>
-        <span class="log-msg">${esc(l.message)}</span>
-      </div>
-    `).join('');
-    body.scrollTop = body.scrollHeight;
-    setText('logCount', STATE.logCount + ' events');
-  } catch(e) { console.warn('Log render error:', e); }
-}
-
-function randomLog() {
-  if (STATE.logPaused) return;
-  const [level, message] = pick(LOG_MESSAGES);
-  log(level, message);
-}
-
-// ---- VOTE MODAL ------------------------------------------------
-function openVoteModal(proposalId) {
-  try {
-    const prop = STATE.proposals.find(p => p.id === proposalId);
-    if (!prop) return;
-    if (prop.status !== 'open') {
-      showToast('info', 'This proposal is no longer accepting votes.');
-      return;
-    }
-    STATE.activeProposal = proposalId;
-    STATE.selectedVote   = null;
-    setText('voteModalTitle', 'Vote on ' + prop.id);
-    setText('voteModalSub',   prop.title);
-    clearVoteSelection();
-    document.getElementById('btnSubmitVote').disabled = true;
-    document.getElementById('voteModal').classList.add('open');
-  } catch(e) { console.warn('Vote modal error:', e); }
-}
-
-function closeVoteModal() {
-  document.getElementById('voteModal').classList.remove('open');
-  STATE.activeProposal = null;
-  STATE.selectedVote   = null;
-}
-
-function clearVoteSelection() {
-  ['voteYes','voteNo','voteAbs'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.className = 'vote-option';
-  });
-}
-
-function selectVote(choice) {
-  STATE.selectedVote = choice;
-  clearVoteSelection();
-  const map = { yes:'voteYes', no:'voteNo', abstain:'voteAbs' };
-  const cls = { yes:'sel-yes', no:'sel-no', abstain:'sel-abs' };
-  const el  = document.getElementById(map[choice]);
-  if (el) el.classList.add(cls[choice]);
-  document.getElementById('btnSubmitVote').disabled = false;
-}
-
-function submitVote() {
-  try {
-    if (!STATE.selectedVote || !STATE.activeProposal) return;
-    const prop = STATE.proposals.find(p => p.id === STATE.activeProposal);
-    if (!prop) return;
-
-    if (STATE.selectedVote === 'yes')     { prop.yes += 1; prop.total += 1; }
-    else if (STATE.selectedVote === 'no') { prop.no  += 1; prop.total += 1; }
-    else                                  { prop.abs += 1; prop.total += 1; }
-
-    log('OK', `Vote recorded: YOU → ${prop.id} ${STATE.selectedVote.toUpperCase()}`);
-    closeVoteModal();
-    renderProposals();
-    renderKPIs();
-    updateGauge();
-    showToast('success', `Vote cast: ${STATE.selectedVote.toUpperCase()} on ${prop.id}`);
-
-    // Check quorum
-    const yPct = prop.yes / prop.total;
-    if (yPct >= CONFIG.quorumThreshold && prop.status === 'open') {
-      setTimeout(() => {
-        prop.status = 'passed';
-        prop.timeLeft = 'Closed';
-        renderProposals();
-        renderKPIs();
-        log('OK', `Proposal ${prop.id} PASSED — quorum reached (${Math.round(yPct*100)}%)`);
-        showToast('success', `${prop.id} has passed quorum!`);
-      }, 800);
-    }
-  } catch(e) {
-    console.error('Submit vote error:', e);
-    showToast('error', 'Failed to submit vote: ' + e.message);
-  }
-}
-
-// ---- PROPOSAL MODAL --------------------------------------------
-function openProposalModal() {
-  document.getElementById('proposalModal').classList.add('open');
-}
-
-function closeProposalModal() {
-  document.getElementById('proposalModal').classList.remove('open');
-}
-
-function submitProposal() {
-  try {
-    const title    = document.getElementById('propTitle').value.trim();
-    const category = document.getElementById('propCategory').value;
-    const desc     = document.getElementById('propDesc').value.trim();
-    const duration = parseInt(document.getElementById('propDuration').value) || 48;
-
-    if (!title) { showToast('error', 'Please enter a proposal title.'); return; }
-    if (!desc)  { showToast('error', 'Please enter a description.');    return; }
-
-    const id = 'PROP-' + String(STATE.proposals.length + 1).padStart(3, '0');
-    STATE.proposals.unshift({
-      id,
-      title,
-      category,
-      status:   'open',
-      yes: 0, no: 0, abs: 0,
-      total: 0,
-      timeLeft: duration + 'h 0m',
-      author:   'AGT-YOU',
-    });
-
-    document.getElementById('propTitle').value = '';
-    document.getElementById('propDesc').value  = '';
-    closeProposalModal();
-    renderProposals();
-    renderKPIs();
-    log('INFO', `New proposal submitted: ${id} — "${title}"`);
-    showToast('success', `Proposal ${id} submitted to the swarm!`);
-  } catch(e) {
-    console.error('Submit proposal error:', e);
-    showToast('error', 'Failed to submit proposal: ' + e.message);
-  }
-}
-
-// ---- AGENT ACTIONS ---------------------------------------------
-function inspectAgent(id) {
-  const agent = STATE.agents.find(a => a.id === id);
-  if (!agent) return;
-  showToast('info', `Inspecting ${id} — Trust: ${agent.trust}% | Load: ${agent.load}% | Uptime: ${agent.uptime}%`);
-  log('INFO', `Inspection request: ${id} — trust=${agent.trust}% load=${agent.load}%`);
-}
-
-function terminateAgent(id) {
-  const agent = STATE.agents.find(a => a.id === id);
-  if (!agent) return;
-  agent.status = 'offline';
-  renderAgentTable();
-  renderKPIs();
-  buildNetworkGraph();
-  log('WARN', `Agent terminated: ${id}`);
-  showToast('info', `Agent ${id} has been terminated.`);
-}
-
-function restartAgent(id) {
-  const agent = STATE.agents.find(a => a.id === id);
-  if (!agent) return;
-  agent.status = 'sync';
-  renderAgentTable();
-  renderKPIs();
-  log('INFO', `Restart initiated: ${id} — syncing...`);
-  showToast('info', `Agent ${id} is restarting...`);
-  setTimeout(() => {
-    agent.status = 'active';
-    agent.load   = rnd(10, 40);
-    renderAgentTable();
-    renderKPIs();
-    buildNetworkGraph();
-    log('OK', `Agent ${id} back online`);
-    showToast('success', `Agent ${id} is now active!`);
-  }, 3000);
-}
-
-// ---- LIVE DATA TICK --------------------------------------------
-function tickAgents() {
-  STATE.agents.forEach(a => {
-    if (a.status === 'offline') return;
-    a.load     = Math.max(5,  Math.min(99, a.load     + rnd(-5, 5)));
-    a.trust    = Math.max(40, Math.min(99, a.trust    + rnd(-1, 1)));
-    a.messages += rnd(1, 20);
-  });
-  renderAgentTable();
-  renderKPIs();
-  updateGauge();
-}
-
-// ---- TIMESTAMP -------------------------------------------------
-function updateTimestamp() {
-  const el = document.getElementById('lastUpdated');
-  if (el) el.textContent = 'Last updated: ' + new Date().toLocaleTimeString();
-}
-
-// ---- TOAST NOTIFICATIONS ---------------------------------------
-function showToast(type, message) {
-  try {
-    const container = document.getElementById('toast-container');
-    if (!container) return;
-    const icons  = { success:'✅', error:'❌', info:'ℹ️' };
-    const toast  = document.createElement('div');
-    toast.className = 'toast ' + type;
-    toast.innerHTML = `<span class="toast-icon">${icons[type]||'📢'}</span><span>${esc(message)}</span>`;
-    container.appendChild(toast);
-    setTimeout(() => {
-      toast.style.animation = 'toastOut 0.35s ease forwards';
-      setTimeout(() => toast.remove(), 380);
-    }, CONFIG.toastDuration);
-  } catch(e) { console.warn('Toast error:', e); }
-}
-
-// ---- BIND EVENTS -----------------------------------------------
-function bindEvents() {
-  try {
-    // Topbar buttons
-    const btnRefresh = document.getElementById('btnRefresh');
-    if (btnRefresh) btnRefresh.addEventListener('click', () => {
-      renderAll();
-      renderSparklines();
-      showToast('info', 'Data refreshed');
-      log('INFO', 'Manual refresh triggered');
-    });
-
-    const btnNewProposal = document.getElementById('btnNewProposal');
-    if (btnNewProposal) btnNewProposal.addEventListener('click', openProposalModal);
-
-    const btnAddAgent = document.getElementById('btnAddAgent');
-    if (btnAddAgent) btnAddAgent.addEventListener('click', spawnAgent);
-
-    // Canvas controls
-    const btnResetLayout = document.getElementById('btnResetLayout');
-    if (btnResetLayout) btnResetLayout.addEventListener('click', () => {
-      buildNetworkGraph();
-      log('INFO', 'Network layout reset');
-    });
-
-    const btnToggleLabels = document.getElementById('btnToggleLabels');
-    if (btnToggleLabels) btnToggleLabels.addEventListener('click', () => {
-      showLabels = !showLabels;
-      btnToggleLabels.textContent = showLabels ? 'Labels' : 'No Labels';
-    });
-
-    // Log controls
-    const btnClearLog = document.getElementById('btnClearLog');
-    if (btnClearLog) btnClearLog.addEventListener('click', () => {
-      STATE.logLines  = [];
-      STATE.logCount  = 0;
-      renderLog();
-    });
-
-    const btnPauseLog = document.getElementById('btnPauseLog');
-    if (btnPauseLog) btnPauseLog.addEventListener('click', () => {
-      STATE.logPaused = !STATE.logPaused;
-      btnPauseLog.textContent = STATE.logPaused ? 'Resume' : 'Pause';
-      if (!STATE.logPaused) log('INFO', 'Log stream resumed');
-    });
-
-    // Close modals on backdrop click
-    document.getElementById('voteModal').addEventListener('click', function(e) {
-      if (e.target === this) closeVoteModal();
-    });
-    document.getElementById('proposalModal').addEventListener('click', function(e) {
-      if (e.target === this) closeProposalModal();
-    });
-
-    // Keyboard shortcuts
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') {
-        closeVoteModal();
-        closeProposalModal();
-      }
-    });
-
-    // Nav active state
-    document.querySelectorAll('.nav-links a').forEach(link => {
-      link.addEventListener('click', function() {
-        document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
-        this.classList.add('active');
-      });
-    });
-  } catch(e) { console.warn('Bind events error:', e); }
-}
-
-// ---- SPAWN AGENT -----------------------------------------------
-function spawnAgent() {
-  const suffixes = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  const id = 'AGT-' + pick([...suffixes]) + rnd(0,9) + pick([...suffixes]) + rnd(0,9);
-  STATE.agents.push({
-    id,
-    role:     pick(ROLES),
-    status:   'sync',
-    trust:    rnd(60, 80),
-    load:     rnd(5, 30),
-    messages: 0,
-    uptime:   100,
-  });
-  renderAgentTable();
-  renderKPIs();
-  buildNetworkGraph();
-  log('OK', `New agent spawned: ${id} — initialising...`);
-  showToast('success', `Agent ${id} spawned and syncing.`);
-  setTimeout(() => {
-    const a = STATE.agents.find(x => x.id === id);
-    if (a) { a.status = 'active'; renderAgentTable(); renderKPIs(); }
-  }, 2500);
-}
-
-// ---- INTERVALS -------------------------------------------------
-function startIntervals() {
-  STATE.intervals.push(setInterval(tickAgents,    CONFIG.refreshInterval));
-  STATE.intervals.push(setInterval(randomLog,     CONFIG.logInterval));
-  STATE.intervals.push(setInterval(tickSparkData, CONFIG.sparkInterval));
-  STATE.intervals.push(setInterval(updateTimestamp, 5000));
-  STATE.intervals.push(setInterval(() => buildNetworkGraph(), CONFIG.networkInterval));
-  // Initial sparkline render
-  renderSparklines();
-}
-
-// ---- HELPERS ---------------------------------------------------
-function setText(id, value) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = value;
-}
-
-function esc(str) {
-  if (str === null || str === undefined) return '';
-  return String(str)
-    .replace(/&/g,  '&amp;')
-    .replace(/</g,  '&lt;')
-    .replace(/>/g,  '&gt;')
-    .replace(/"/g,  '&quot;')
-    .replace(/'/g,  '&#039;');
-}
-</script>
+        // Initialize with some agents
+        for (let i = 0; i < 10; i++) addAgent();
+        startSimulation();
+    </script>
 </body>
 </html>
