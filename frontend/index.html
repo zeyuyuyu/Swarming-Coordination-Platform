@@ -3,189 +3,186 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Decentralized Intelligence Mesh</title>
+    <title>Swarm Coordination Platform</title>
     <style>
         :root {
-            --primary: #6366f1;
-            --secondary: #4f46e5;
-            --bg: #0f172a;
-            --text: #e2e8f0;
+            --primary: #2E3440;
+            --secondary: #5E81AC;
+            --accent: #88C0D0;
+            --success: #A3BE8C;
+            --text: #ECEFF4;
         }
         
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', system-ui, sans-serif;
         }
 
         body {
-            background: var(--bg);
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--primary);
             color: var(--text);
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
         }
 
-        .nav {
-            background: rgba(255,255,255,0.05);
-            padding: 1rem;
-            backdrop-filter: blur(10px);
-            position: fixed;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
         }
 
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeIn 1s ease-in;
         }
 
-        .main {
-            padding: 6rem 2rem 2rem;
-            flex: 1;
-        }
-
-        .mesh-grid {
+        .swarm-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
             margin-top: 2rem;
         }
 
-        .node {
-            background: rgba(255,255,255,0.05);
-            border-radius: 1rem;
+        .swarm-card {
+            background: rgba(94, 129, 172, 0.1);
+            border-radius: 10px;
             padding: 1.5rem;
-            transition: all 0.3s;
+            transition: transform 0.3s ease;
             cursor: pointer;
             position: relative;
             overflow: hidden;
         }
 
-        .node:hover {
+        .swarm-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
 
-        .node::before {
+        .swarm-card::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
-            opacity: 0;
-            transition: opacity 0.3s;
+            background: linear-gradient(45deg, transparent, rgba(136, 192, 208, 0.1));
+            transition: transform 0.5s ease;
         }
 
-        .node:hover::before {
-            opacity: 0.1;
+        .swarm-card:hover::before {
+            transform: translateX(100%);
         }
 
-        .node h3 {
-            margin-bottom: 1rem;
-            color: var(--primary);
-        }
-
-        .stats {
+        .metrics {
             display: flex;
-            gap: 1rem;
+            justify-content: space-between;
             margin-top: 1rem;
-        }
-
-        .stat {
-            background: rgba(255,255,255,0.1);
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
             font-size: 0.9rem;
+            color: var(--accent);
         }
 
-        .pulse {
+        .status-badge {
             display: inline-block;
-            width: 8px;
-            height: 8px;
-            background: #22c55e;
-            border-radius: 50%;
-            margin-right: 0.5rem;
-            animation: pulse 2s infinite;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            background: var(--success);
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
         }
 
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.5); opacity: 0.5; }
-            100% { transform: scale(1); opacity: 1; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .control-panel {
+            background: rgba(94, 129, 172, 0.2);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            background: var(--secondary);
+            color: var(--text);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .btn:hover {
+            background: var(--accent);
         }
     </style>
 </head>
 <body>
-    <nav class="nav">
-        <div class="logo">DI-Mesh</div>
-        <div class="status"><span class="pulse"></span>Network Active</div>
-    </nav>
+    <div class="container">
+        <header class="header">
+            <h1>Swarm Coordination Platform</h1>
+            <p>Real-time swarm management and monitoring</p>
+        </header>
 
-    <main class="main">
-        <h1>Decentralized Intelligence Network</h1>
-        <p>Monitoring and managing distributed AI nodes in real-time</p>
-
-        <div class="mesh-grid">
-            <div class="node">
-                <h3>Node Alpha</h3>
-                <p>Primary intelligence coordinator</p>
-                <div class="stats">
-                    <span class="stat">CPU: 45%</span>
-                    <span class="stat">Memory: 2.4GB</span>
-                </div>
-            </div>
-
-            <div class="node">
-                <h3>Node Beta</h3>
-                <p>Data processing cluster</p>
-                <div class="stats">
-                    <span class="stat">CPU: 78%</span>
-                    <span class="stat">Memory: 4.1GB</span>
-                </div>
-            </div>
-
-            <div class="node">
-                <h3>Node Gamma</h3>
-                <p>Neural network training</p>
-                <div class="stats">
-                    <span class="stat">CPU: 92%</span>
-                    <span class="stat">Memory: 6.8GB</span>
-                </div>
-            </div>
+        <div class="control-panel">
+            <button class="btn" onclick="initializeSwarm()">Initialize Swarm</button>
+            <button class="btn" onclick="optimizeFormation()">Optimize Formation</button>
+            <button class="btn" onclick="emergencyStop()">Emergency Stop</button>
         </div>
-    </main>
+
+        <div class="swarm-grid" id="swarmGrid"></div>
+    </div>
 
     <script>
-        // Simulate real-time updates
-        setInterval(() => {
-            document.querySelectorAll('.stat').forEach(stat => {
-                if (stat.textContent.includes('CPU')) {
-                    const newValue = Math.floor(Math.random() * 100);
-                    stat.textContent = `CPU: ${newValue}%`;
-                }
-                if (stat.textContent.includes('Memory')) {
-                    const newValue = (Math.random() * 8).toFixed(1);
-                    stat.textContent = `Memory: ${newValue}GB`;
-                }
-            });
-        }, 2000);
+        const swarmData = [
+            { id: 1, status: 'Active', battery: '92%', position: '12.3N, 45.6E', task: 'Surveillance' },
+            { id: 2, status: 'Active', battery: '87%', position: '12.4N, 45.7E', task: 'Data Collection' },
+            { id: 3, status: 'Charging', battery: '23%', position: '12.2N, 45.5E', task: 'Standby' },
+            { id: 4, status: 'Active', battery: '95%', position: '12.5N, 45.8E', task: 'Mapping' }
+        ];
 
-        // Add click interaction
-        document.querySelectorAll('.node').forEach(node => {
-            node.addEventListener('click', () => {
-                node.style.transform = 'scale(0.95)';
-                setTimeout(() => node.style.transform = '', 150);
+        function createSwarmCard(data) {
+            return `
+                <div class="swarm-card">
+                    <span class="status-badge">${data.status}</span>
+                    <h3>Swarm Unit #${data.id}</h3>
+                    <p>Current Task: ${data.task}</p>
+                    <div class="metrics">
+                        <span>Battery: ${data.battery}</span>
+                        <span>Position: ${data.position}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function initializeSwarm() {
+            const grid = document.getElementById('swarmGrid');
+            grid.innerHTML = '';
+            swarmData.forEach(unit => {
+                grid.innerHTML += createSwarmCard(unit);
             });
-        });
+        }
+
+        function optimizeFormation() {
+            const cards = document.querySelectorAll('.swarm-card');
+            cards.forEach(card => {
+                card.style.animation = 'fadeIn 0.5s ease';
+            });
+        }
+
+        function emergencyStop() {
+            const cards = document.querySelectorAll('.swarm-card');
+            cards.forEach(card => {
+                card.style.background = 'rgba(191, 97, 106, 0.2)';
+                setTimeout(() => {
+                    card.style.background = 'rgba(94, 129, 172, 0.1)';
+                }, 1000);
+            });
+        }
+
+        // Initialize on load
+        window.onload = initializeSwarm;
     </script>
 </body>
 </html>
