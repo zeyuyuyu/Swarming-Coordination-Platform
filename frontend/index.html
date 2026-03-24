@@ -3,113 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SwarmConnect - Join the Hive!</title>
+    <title>SwarmQuest - Coordinate & Compete!</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 </head>
-<body class="bg-gradient-to-br from-purple-900 to-indigo-900 min-h-screen text-white">
-    <div id="app" class="container mx-auto px-4 py-8">
-        <!-- Gamification Header -->
-        <div class="text-center mb-8 animate__animated animate__fadeIn">
-            <h1 class="text-5xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">SwarmConnect</h1>
-            <div class="flex justify-center items-center space-x-4">
-                <div class="bg-purple-800 rounded-lg p-4 shadow-lg">
-                    <span class="text-2xl font-bold" id="swarmPoints">0</span>
-                    <p>Swarm Points</p>
+<body class="bg-gradient-to-r from-purple-900 via-purple-700 to-purple-900 text-white">
+    <div id="app" class="min-h-screen p-4">
+        <!-- Header with Gamification Elements -->
+        <header class="flex justify-between items-center mb-8">
+            <div class="flex items-center gap-4">
+                <img src="https://api.dicebear.com/6.x/identicon/svg?seed=swarm" class="w-12 h-12 rounded-full animate__animated animate__pulse animate__infinite">
+                <div>
+                    <h1 class="text-2xl font-bold">SwarmQuest</h1>
+                    <p class="text-purple-200">Level <span id="userLevel" class="font-bold">5</span></p>
                 </div>
-                <div class="bg-purple-800 rounded-lg p-4 shadow-lg">
-                    <span class="text-2xl font-bold" id="rank">Newbie</span>
-                    <p>Hive Rank</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="bg-purple-800 p-2 rounded-lg">
+                    <span class="text-yellow-400">⚡</span>
+                    <span id="points">2,547</span> points
                 </div>
+                <button class="bg-yellow-400 text-purple-900 px-4 py-2 rounded-lg font-bold hover:bg-yellow-300 transition-colors">Share Achievement</button>
+            </div>
+        </header>
+
+        <!-- Daily Challenge Card -->
+        <div class="bg-purple-800 rounded-xl p-6 mb-8 animate__animated animate__fadeIn">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">🏆 Daily Swarm Challenge</h2>
+                <div class="text-purple-200">12:45:30 remaining</div>
+            </div>
+            <div class="bg-purple-700 rounded-lg p-4 mb-4">
+                <p class="text-lg">Coordinate 100 nodes in a perfect hexagonal formation</p>
+                <div class="mt-4 bg-purple-900 rounded-full h-4">
+                    <div class="bg-green-400 rounded-full h-4 w-3/4 transition-all duration-1000"></div>
+                </div>
+                <p class="text-right mt-2">75/100 completed</p>
+            </div>
+            <div class="flex gap-4">
+                <button class="bg-green-500 px-6 py-3 rounded-lg font-bold flex-1 hover:bg-green-400 transition-colors">Accept Challenge</button>
+                <button class="bg-purple-600 px-6 py-3 rounded-lg font-bold flex-1 hover:bg-purple-500 transition-colors">Invite Friends</button>
             </div>
         </div>
 
-        <!-- Daily Challenge -->
-        <div class="bg-purple-800 rounded-lg p-6 mb-8 animate__animated animate__fadeInUp">
-            <h2 class="text-2xl font-bold mb-4">🏆 Daily Challenge</h2>
-            <div class="progress-bar bg-purple-600 rounded-full h-4 mb-4">
-                <div id="challengeProgress" class="bg-yellow-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
-            </div>
-            <p class="text-center">Complete today's challenge to earn <span class="text-yellow-400 font-bold">500</span> Swarm Points!</p>
-        </div>
-
-        <!-- Social Feed -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-purple-800 rounded-lg p-6 animate__animated animate__fadeInLeft">
-                <h2 class="text-2xl font-bold mb-4">🔥 Trending Swarms</h2>
-                <div id="trendingSwarms" class="space-y-4">
-                    <!-- Dynamically populated -->
+        <!-- Leaderboard Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="bg-purple-800 rounded-xl p-6">
+                <h2 class="text-xl font-bold mb-4">🏅 Global Rankings</h2>
+                <div class="space-y-4">
+                    <div class="flex items-center gap-4 bg-purple-700 p-3 rounded-lg">
+                        <span class="text-yellow-400 font-bold">1</span>
+                        <img src="https://api.dicebear.com/6.x/avataaars/svg?seed=Alex" class="w-10 h-10 rounded-full">
+                        <div class="flex-1">SwarmMaster_Alex</div>
+                        <div class="font-bold">12,847 pts</div>
+                    </div>
+                    <!-- More ranking entries... -->
                 </div>
             </div>
 
             <!-- Achievement Showcase -->
-            <div class="bg-purple-800 rounded-lg p-6 animate__animated animate__fadeInRight">
-                <h2 class="text-2xl font-bold mb-4">🎯 Your Achievements</h2>
-                <div id="achievements" class="grid grid-cols-3 gap-4">
-                    <!-- Achievement badges -->
+            <div class="bg-purple-800 rounded-xl p-6">
+                <h2 class="text-xl font-bold mb-4">🌟 Your Achievements</h2>
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="bg-purple-700 p-4 rounded-lg text-center hover:bg-purple-600 cursor-pointer transition-colors">
+                        <img src="https://api.dicebear.com/6.x/icons/svg?seed=speed" class="w-12 h-12 mx-auto mb-2">
+                        <p class="text-sm">Speed Demon</p>
+                    </div>
+                    <!-- More achievements... -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Social Feed -->
+        <div class="mt-8 bg-purple-800 rounded-xl p-6">
+            <h2 class="text-xl font-bold mb-4">📱 Swarm Community</h2>
+            <div class="space-y-4">
+                <div class="bg-purple-700 p-4 rounded-lg">
+                    <div class="flex items-center gap-4 mb-3">
+                        <img src="https://api.dicebear.com/6.x/avataaars/svg?seed=Sarah" class="w-10 h-10 rounded-full">
+                        <div>
+                            <div class="font-bold">Sarah K.</div>
+                            <div class="text-purple-300 text-sm">2 minutes ago</div>
+                        </div>
+                    </div>
+                    <p>Just completed the butterfly formation challenge! 🦋 #SwarmGoals</p>
+                    <div class="mt-4 flex gap-4">
+                        <button class="text-purple-300 hover:text-white transition-colors">❤️ 24 Likes</button>
+                        <button class="text-purple-300 hover:text-white transition-colors">💬 8 Comments</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Gamification Logic
-        let points = 0;
-        const ranks = ['Newbie', 'Scout', 'Worker', 'Elite', 'Queen'];
-        
-        function addPoints(amount) {
-            points += amount;
-            document.getElementById('swarmPoints').textContent = points;
-            updateRank();
-            showRewardAnimation();
-        }
-
-        function updateRank() {
-            const rankIndex = Math.min(Math.floor(points / 1000), ranks.length - 1);
-            document.getElementById('rank').textContent = ranks[rankIndex];
-        }
-
-        function showRewardAnimation() {
-            const reward = document.createElement('div');
-            reward.className = 'fixed text-yellow-400 text-xl font-bold animate__animated animate__bounceOutUp';
-            reward.style.left = Math.random() * 80 + 10 + '%';
-            reward.style.top = '50%';
-            reward.textContent = '+' + points;
-            document.body.appendChild(reward);
-            setTimeout(() => reward.remove(), 1000);
-        }
-
-        // Populate trending swarms
-        const trendingData = [
-            { name: 'Project Alpha', members: 1234, growth: '+25%' },
-            { name: 'Eco Warriors', members: 892, growth: '+15%' },
-            { name: 'Tech Innovators', members: 2341, growth: '+40%' }
-        ];
-
-        const trendingContainer = document.getElementById('trendingSwarms');
-        trendingData.forEach(swarm => {
-            const div = document.createElement('div');
-            div.className = 'flex justify-between items-center p-3 bg-purple-700 rounded-lg cursor-pointer hover:bg-purple-600 transition';
-            div.innerHTML = `
-                <span>${swarm.name}</span>
-                <div class="text-right">
-                    <div class="text-sm">${swarm.members} members</div>
-                    <div class="text-green-400">${swarm.growth}</div>
-                </div>
-            `;
-            div.onclick = () => addPoints(100);
-            trendingContainer.appendChild(div);
+        // Add engaging animations and interactions
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', () => {
+                button.classList.add('animate__animated', 'animate__pulse');
+                setTimeout(() => button.classList.remove('animate__animated', 'animate__pulse'), 1000);
+            });
         });
 
-        // Simulate progress
+        // Simulate real-time updates
         setInterval(() => {
-            const progress = document.getElementById('challengeProgress');
-            const currentWidth = parseInt(progress.style.width) || 0;
-            if (currentWidth < 100) {
-                progress.style.width = (currentWidth + 1) + '%';
-                if (currentWidth + 1 === 100) addPoints(500);
-            }
-        }, 1000);
+            const points = document.getElementById('points');
+            points.textContent = (parseInt(points.textContent.replace(',', '')) + Math.floor(Math.random() * 10)).toLocaleString();
+            points.classList.add('animate__animated', 'animate__fadeIn');
+            setTimeout(() => points.classList.remove('animate__animated', 'animate__fadeIn'), 1000);
+        }, 5000);
     </script>
 </body>
 </html>
